@@ -15,12 +15,12 @@ env = UR10Env(xml_path="robot/scene.xml",
 
 obs, info = env.reset()
 
-start_pos = np.concatenate([obs["state"]["ee_pos"],obs["state"]["ee_quat"], [0]])
+start_pos = np.concatenate([obs["state"]["ee_pos"],obs["state"]["ee_quat"], [1]])
 
 t = time.time()
 
-# plt.ion()
-# fig, axes = plt.subplots(1, 2, figsize=(10, 5))
+plt.ion()
+fig, axes = plt.subplots(1, 2, figsize=(10, 5))
 
 for _ in range(1001):
     s = np.sin(_/(2*np.pi))/100
@@ -30,19 +30,22 @@ for _ in range(1001):
 
     imgs = obs["images"]
 
-    # for ax, (name, img) in zip(axes, imgs.items()):
-    #     ax.clear()
-    #     ax.imshow(img)
-    #     ax.set_title(name)
-    #     ax.axis("off")
+    for ax, (name, img) in zip(axes, imgs.items()):
+        ax.clear()
+        ax.imshow(img)
+        ax.set_title(name)
+        ax.axis("off")
 
-    # plt.pause(0.001)
+    plt.pause(0.001)
 
     print("POS:", obs["state"]["ee_pos"])
     print("QUAT:",obs["state"]["ee_quat"]) 
     print("LIN_VEL:",obs["state"]["ee_lin_vel"])
     print("ANG_VEL:",obs["state"]["ee_ang_vel"])
     print("JOINTS:",obs["state"]["joint_pos"])
+    print("OBJECTS:")
+    for k in obs["objects"].keys():
+        print(k, obs["objects"][k]["pos"])
     print()
 
     if terminated or truncated:
@@ -51,7 +54,10 @@ for _ in range(1001):
 
         print("Время:", time.time() - t)
 
+    # if _ % 100 == 0:
+    #     obs, info = env.reset()
+
 env.close()
 
-# plt.ioff()
-# plt.show()
+plt.ioff()
+plt.show()

@@ -91,6 +91,7 @@ class UR10Env(gym.Env):
     camera_names = ["cam_front", "cam_side"]
 
     objects_names = ["bottom", "mid", "cap"]
+    objects_joints = ["bottom_joint", "mid_joint", "cap_joint"]
 
     initial_pose = [1.57, -1.57, 1.57, -1.57, -1.57, 0.0, 0.0]
 
@@ -161,7 +162,7 @@ class UR10Env(gym.Env):
 
         self.kin_joints_idx = np.array(self.kin_joints_idx)
 
-        # ----------------------
+        # ---------------------- Для reset и наблюдений
 
         self.joints_qpos_idx = []
         self.joints_qvel_idx = []
@@ -177,7 +178,7 @@ class UR10Env(gym.Env):
         self.joints_qpos_idx = np.array(self.joints_qpos_idx)
         self.joints_qvel_idx = np.array(self.joints_qvel_idx)
 
-        # ----------------------
+        # ---------------------- Для задания действия в джоинтах
 
         self.actuator_idx = []
         for name in self.actuators_names:
@@ -186,11 +187,11 @@ class UR10Env(gym.Env):
 
         self.actuator_idx = np.array(self.actuator_idx)
 
-        # ----------------------
+        # ---------------------- Для задания действия на гриппер
 
         self.gripper_actuator_idx = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_ACTUATOR, self.gripper_actuator_name)
 
-        # ----------------------
+        # ---------------------- Для положения и скорости объектов в наблюдениях 
 
         self.objects_idx = []
         for name in self.objects_names:
@@ -199,7 +200,17 @@ class UR10Env(gym.Env):
 
         self.objects_idx = np.array(self.objects_idx)
 
-        # ----------------------
+        # ---------------------- Для reset объектов
+
+        self.objects_qpos_adr = []
+        for name in self.objects_joints:
+            joint_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_JOINT, name)
+            qpos_adr = self.model.jnt_qposadr[joint_id]
+            self.objects_qpos_adr.append(qpos_adr)
+
+        self.objects_qpos_adr = np.array(self.objects_qpos_adr)
+
+        # ---------------------- Для положения и скорости в наблюдениях
         
         self.ee_idx = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, self.ee_name)
 
@@ -308,6 +319,26 @@ class UR10Env(gym.Env):
 
         for i, id in enumerate(self.joints_qpos_idx):
             self.data.qpos[id] = self.initial_pose[i]
+
+        for i, id in enumerate(self.objects_qpos_adr):
+            pos = self.data.qpos[id:id+3]
+            quat = self.data.qpos[id+3:id+7]
+
+            dx = np.random.uniform(-0.02, 0.02)
+            dy = np.random.uniform(-0.02, 0.02)
+
+            new_pos = pos.copy()
+            new_pos[0] += dx
+            new_pos[1] += dy
+
+            yaw = np.random.uniform(-np.pi/4, np.pi/4)
+            q_yaw = np.array([np.cos(yaw/2), 0, 0, np.sin(yaw/2)])
+
+            new_quat = np.zeros(4, dtype=np.float64)
+            mujoco.mju_mulQuat(new_quat, q_yaw, quat)
+
+            self.data.qpos[id:id+3] = new_pos
+            self.data.qpos[id+3:id+7] = new_quat
 
         mujoco.mj_forward(self.model, self.data)
 
