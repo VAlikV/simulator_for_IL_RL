@@ -9,29 +9,46 @@ env = UR10Env(xml_path="robot/scene.xml",
             control_hz = 30.0,
             mode = "realtime",   # "realtime" | "fast"
             max_episode_steps = 1000,
+            use_task_space=False,
             render_mode="all",   # None | "human" | "rgb_array" | "all"
 )
 
 obs, info = env.reset()
 
+start_pos = np.concatenate([obs["state"]["ee_pos"],obs["state"]["ee_quat"], [0]])
+
 t = time.time()
 
-plt.ion()
-fig, axes = plt.subplots(1, 2, figsize=(10, 5))
+# plt.ion()
+# fig, axes = plt.subplots(1, 2, figsize=(10, 5))
 
 for _ in range(1001):
     action = np.array([1.57, -1.57, 1.57, -1.57, -1.57, 0.0, 0.0])
+    s = np.sin(_/(2*np.pi))/100
+    action[1] += s
+    # start_pos[1] += s
+    # start_pos[2] += s
+    # start_pos[7] = abs(s)*100
+
+
     obs, reward, terminated, truncated, info = env.step(action)
 
     imgs = obs["images"]
 
-    for ax, (name, img) in zip(axes, imgs.items()):
-        ax.clear()
-        ax.imshow(img)
-        ax.set_title(name)
-        ax.axis("off")
+    # for ax, (name, img) in zip(axes, imgs.items()):
+    #     ax.clear()
+    #     ax.imshow(img)
+    #     ax.set_title(name)
+    #     ax.axis("off")
 
-    plt.pause(0.001)
+    # plt.pause(0.001)
+
+    print("POS:", obs["state"]["ee_pos"])
+    print("QUAT:",obs["state"]["ee_quat"]) 
+    print("LIN_VEL:",obs["state"]["ee_lin_vel"])
+    print("ANG_VEL:",obs["state"]["ee_ang_vel"])
+    print("JOINTS:",obs["state"]["joint_pos"])
+    print()
 
     if terminated or truncated:
         print("Episode ended:", terminated, truncated, info)
@@ -41,5 +58,5 @@ for _ in range(1001):
 
 env.close()
 
-plt.ioff()
-plt.show()
+# plt.ioff()
+# plt.show()
