@@ -15,8 +15,6 @@ env = UR10Env(xml_path="robot/scene.xml",
 
 obs, info = env.reset()
 
-start_pos = np.concatenate([obs["state"]["ee_pos"],obs["state"]["ee_quat"], [0]])
-
 t = time.time()
 
 # plt.ion()
@@ -24,11 +22,8 @@ t = time.time()
 
 for _ in range(1001):
     action = np.array([1.57, -1.57, 1.57, -1.57, -1.57, 0.0, 0.0])
-    s = np.sin(_/(2*np.pi))/100
+    s = np.sin(_/(2*np.pi))/10
     action[1] += s
-    # start_pos[1] += s
-    # start_pos[2] += s
-    # start_pos[7] = abs(s)*100
 
 
     obs, reward, terminated, truncated, info = env.step(action)

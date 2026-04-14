@@ -4,10 +4,76 @@ from gymnasium import spaces
 import mujoco
 import mujoco.viewer
 import time
+import pinocchio as pin
 
+class PinKinematics:
+    def __init__(self, model_path, ee_name="ee_link", max_it=1000, eps=1e-4):
+        self.model = pin.buildModelFromMJCF(model_path)
+        self.data = self.model.createData()
+
+        self.ee_frame_id = self.model.getFrameId(ee_name)
+
+        self.max_it = max_it
+        self.eps = eps
+        self.dt = 1e-1
+        self.damp = 1e-12
+
+    def solve_ik(self, target_pos, target_orient, current_joint):
+        '''
+        target_pos - np.array(x, y, z) в метрах
+        target_orient - np.array(w, x, y, z) кватернион
+        current_joint - np.array(q1 ... q6) углы в радианах
+        '''
+        target_position = pin.SE3(target_orient, target_pos)
+        q = current_joint
+        i = 0
+        while True:
+            pin.forwardKinematics(self.model, self.data, q)
+            pin.updateFramePlacement(self.model, self.data, self.ee_frame_id)
+            
+            oMf = self.data.oMf[self.ee_frame_id]
+            
+            iMd = oMf.actInv(target_position)
+            err = pin.log(iMd).vector  
+            
+            if np.linalg.norm(err) < self.eps:
+                success = True
+                break
+            if i >= self.max_it:
+                success = False
+                break
+                
+            J = pin.computeFrameJacobian(self.model, self.data, q, self.ee_frame_id, pin.LOCAL)
+            
+            J = -np.dot(pin.Jlog6(iMd.inverse()), J)
+            v = -J.T.dot(np.linalg.solve(J.dot(J.T) + self.damp * np.eye(6), err))
+            q = pin.integrate(self.model, q, v * self.dt)
+            
+            # if not i % 10:
+            #     print(f"{i}: error = {err.T}")
+            i += 1
+
+        return success, q
+    
+    def solve_fk(self, current_joint):
+        pin.forwardKinematics(self.model, self.data, current_joint)
+        pin.updateFramePlacement(self.model, self.data, self.ee_frame_id)
+        oMf = self.data.oMf[self.ee_frame_id]
+
+        return oMf.translation, oMf.rotation
+
+# ===================================================================================================
+# ===================================================================================================
+# ===================================================================================================
 
 class UR10Env(gym.Env):
-    # metadata = {"render_modes": ["human", "rgb_array"]}
+
+    ee_name = "gripper_base"
+
+    kin_joints_names = ["shoulder_pan_joint", "shoulder_lift_joint", "elbow_joint", 
+                  "wrist_1_joint", "wrist_2_joint", "wrist_3_joint", "left_driver_joint", 
+                  "left_spring_link_joint", "left_follower", 'right_driver_joint', 
+                  "right_spring_link_joint", "right_follower_joint"]
 
     joints_names = [
         "shoulder_pan_joint", "shoulder_lift_joint", "elbow_joint",
@@ -20,7 +86,7 @@ class UR10Env(gym.Env):
     ]
 
     gripper_actuator_name = "fingers_actuator"
-    gripper_joint_name = "left_driver_joint"
+    # gripper_joint_name = "left_driver_joint"
 
     camera_names = ["cam_front", "cam_side"]
 
@@ -47,6 +113,11 @@ class UR10Env(gym.Env):
         self.model = mujoco.MjModel.from_xml_path(xml_path)
         self.data = mujoco.MjData(self.model)
 
+        # ===================== misc =====================
+        self.use_task_space = use_task_space
+        self.step_count = 0
+        self.max_episode_steps = max_episode_steps
+
         # ===================== timing =====================
         self._setup_idx()
         self._setup_spaces()
@@ -72,14 +143,26 @@ class UR10Env(gym.Env):
         if self.render_mode == "all" or self.render_mode == "rgb_array":
             self.renderer = mujoco.Renderer(self.model)
 
-        # ===================== misc =====================
-        self.use_task_space = use_task_space
-        self.step_count = 0
-        self.max_episode_steps = max_episode_steps
+        # ===================== kinematics ===============
+
+        self.kinematics = PinKinematics(model_path="robot/ur10e2f85.xml", ee_name=self.ee_name)
 
     # ======================================================================
 
     def _setup_idx(self):
+
+        self.kin_joints_idx = []
+        for name in self.kin_joints_names:
+            joint_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_JOINT, name)
+
+            qpos_adr = self.model.jnt_qposadr[joint_id]
+
+            self.kin_joints_idx.append(qpos_adr)
+
+        self.kin_joints_idx = np.array(self.kin_joints_idx)
+
+        # ----------------------
+
         self.joints_qpos_idx = []
         self.joints_qvel_idx = []
         for name in self.joints_names:
@@ -105,6 +188,10 @@ class UR10Env(gym.Env):
 
         # ----------------------
 
+        self.gripper_actuator_idx = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_ACTUATOR, self.gripper_actuator_name)
+
+        # ----------------------
+
         self.objects_idx = []
         for name in self.objects_names:
             object_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, name)
@@ -112,17 +199,33 @@ class UR10Env(gym.Env):
 
         self.objects_idx = np.array(self.objects_idx)
 
+        # ----------------------
+        
+        self.ee_idx = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, self.ee_name)
+
     # ======================================================================
 
     def _setup_spaces(self):
-        self.action_dim = self.actuator_idx.shape[0]
 
-        self.action_space = spaces.Box(
-            low=-10.0,
-            high=10.0,
-            shape=(self.action_dim,),
-            dtype=np.float32
-        )
+        if self.use_task_space:
+            self.action_dim = 8
+
+            self.action_space = spaces.Box(
+                low= np.array([-10.0, -10.0, -10.0, -1.0, -1.0, -1.0, -1.0, 0.0], dtype=np.float32),
+                high=np.array([ 10.0,  10.0,  10.0,  1.0,  1.0,  1.0,  1.0, 1.0], dtype=np.float32),
+                shape=(8,),
+                dtype=np.float32
+            )
+        
+        else:
+            self.action_dim = self.actuator_idx.shape[0]
+
+            self.action_space = spaces.Box(
+                low= np.array([-10.0, -10.0, -10.0, -10.0, -10.0, -10.0, 0.0], dtype=np.float32),
+                high=np.array([ 10.0,  10.0,  10.0,  10.0,  10.0,  10.0, 1.0], dtype=np.float32),
+                shape=(self.action_dim,),
+                dtype=np.float32
+            )
 
         # ----------------------
         n_joints = len(self.joints_qpos_idx)
@@ -134,6 +237,18 @@ class UR10Env(gym.Env):
             "joint_vel": spaces.Box(
                 low=-np.inf, high=np.inf, shape=(n_joints,), dtype=np.float32
             ),
+            "ee_pos": spaces.Box(
+                low=-np.inf, high=np.inf, shape=(3,), dtype=np.float32
+            ),
+            "ee_quat": spaces.Box(
+                low=-1, high=1, shape=(4,), dtype=np.float32
+            ),
+            "ee_lin_vel": spaces.Box(
+                low=-np.inf, high=np.inf, shape=(3,), dtype=np.float32
+            ),
+            "ee_ang_vel": spaces.Box(
+                low=-np.inf, high=np.inf, shape=(3,), dtype=np.float32
+            ),
         })
 
         # ----------------------
@@ -141,12 +256,20 @@ class UR10Env(gym.Env):
 
         for obj in self.objects_names:
             objects_space[obj] = spaces.Dict({
-                f"{obj}_pos": spaces.Box(
-                    low=-np.inf, high=np.inf, shape=(7,), dtype=np.float32
-                ),
-                f"{obj}_vel": spaces.Box(
-                    low=-np.inf, high=np.inf, shape=(6,), dtype=np.float32
-                ),
+                obj: spaces.Dict({
+                    "pos": spaces.Box(
+                        low=-np.inf, high=np.inf, shape=(3,), dtype=np.float32
+                    ),
+                    "quat": spaces.Box(
+                        low=-1, high=1, shape=(4,), dtype=np.float32
+                    ),
+                    "lin_vel": spaces.Box(
+                        low=-np.inf, high=np.inf, shape=(3,), dtype=np.float32
+                    ),
+                    "ang_vel": spaces.Box(
+                        low=-np.inf, high=np.inf, shape=(3,), dtype=np.float32
+                    ),
+                })
             })
 
         objects_space = spaces.Dict(objects_space)
@@ -203,10 +326,12 @@ class UR10Env(gym.Env):
     # ======================================================================
 
     def step(self, action):
-        action = np.asarray(action, dtype=np.float64)
-        action = np.clip(action, self.action_space.low, self.action_space.high)
-
-        self.data.ctrl[:] = action
+        '''
+            action - целевые углы в rad + положение гриппера, если use_task_space = True
+            action - целевое положение в метрах (x, y, z) + кватернион (w, x, y, z) + положение гриппера, если use_task_space = False
+        '''
+        
+        self._apply_action(action)
 
         # physics step
         mujoco.mj_step(self.model, self.data, nstep=self.frame_skip)
@@ -246,7 +371,29 @@ class UR10Env(gym.Env):
     # ======================================================================
 
     def _apply_action(self, action):
-        pass
+        action = np.asarray(action, dtype=np.float64)
+        action = np.clip(action, self.action_space.low, self.action_space.high)
+
+        if self.use_task_space:
+            pos = action[0:3]
+            quat = action[3:7]
+            gripper = action[7]
+            R = np.zeros(9)
+            mujoco.mju_quat2Mat(R, quat)
+            R = R.reshape(3, 3)
+
+            # Исправление поворота осей
+            R_fix = np.diag([-1, -1, 1])
+            R_corrected = R @ R_fix
+            pos_corrected = pos @ R_fix
+
+            _, all_action = self.kinematics.solve_ik(pos_corrected, R_corrected, self.data.qpos[self.kin_joints_idx])
+
+            all_action[self.gripper_actuator_idx] = 255*gripper
+            action = all_action[self.actuator_idx]
+
+        self.gripper_action = action[-1]
+        self.data.ctrl[:] = action
 
     # ======================================================================
 
@@ -257,9 +404,37 @@ class UR10Env(gym.Env):
         obs["state"]["joint_pos"] = self.data.qpos[self.joints_qpos_idx]
         obs["state"]["joint_vel"] = self.data.qvel[self.joints_qvel_idx]
 
+        ee_vel = np.zeros(6)
+        mujoco.mj_objectVelocity(
+            self.model,
+            self.data,
+            mujoco.mjtObj.mjOBJ_BODY,
+            self.ee_idx,
+            ee_vel,
+            0
+        )
+
+        obs["state"]["ee_pos"] = self.data.xpos[self.ee_idx].copy()
+        obs["state"]["ee_quat"] = self.data.xquat[self.ee_idx].copy()
+        obs["state"]["ee_lin_vel"] = ee_vel[3:].copy()
+        obs["state"]["ee_ang_vel"] = ee_vel[:3].copy()
+
         for i, obj in enumerate(self.objects_names):
-            obs["objects"][f"{obj}_pos"] = self.data.qpos[self.objects_idx[i]:self.objects_idx[i]+7]
-            obs["objects"][f"{obj}_vel"] = self.data.qvel[self.objects_idx[i]:self.objects_idx[i]+6]
+            vel = np.zeros(6)
+            mujoco.mj_objectVelocity(
+                self.model,
+                self.data,
+                mujoco.mjtObj.mjOBJ_BODY,
+                self.objects_idx[i],
+                vel,
+                0
+            )
+            obs["objects"][obj] = {}
+            obs["objects"][obj] = {}
+            obs["objects"][obj]["pos"] = self.data.xpos[self.objects_idx[i]].copy()
+            obs["objects"][obj]["quat"] = self.data.xquat[self.objects_idx[i]].copy()
+            obs["objects"][obj]["lin_vel"] = vel[3:].copy()
+            obs["objects"][obj]["ang_vel"] = vel[:3].copy()
 
         images = self.render()
         if images is not None:
