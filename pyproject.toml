@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "simulator_for_il_rl"
+version = "0.1.0"
+description = "MuJoCo-based simulator for imitation and reinforcement learning"
+authors = [
+    { name = "VAlikV" }
+]
+readme = "README.md"
+requires-python = ">=3.10"
+
+dependencies = [
+    "numpy",
+    "gymnasium",
+    "mujoco>=2.3",
+    "pin",
+]
+
+# если хочешь CLI запуск
+# [project.scripts]
+# task-space-example = "simulator_for_il_rl.task_space_example:main"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["simulator_for_il_rl*"]
+
+# КРИТИЧНО: включаем XML и ассеты
+[tool.setuptools.package-data]
+"simulator_for_il_rl.robot" = [
+    "*.xml",
+    "assets/*",
+    "assets/**/*"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "black",
+    "isort"
+]

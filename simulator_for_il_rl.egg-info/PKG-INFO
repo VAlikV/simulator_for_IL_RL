@@ -1,0 +1,18 @@
+Metadata-Version: 2.4
+Name: simulator_for_il_rl
+Version: 0.1.0
+Summary: MuJoCo-based simulator for imitation and reinforcement learning
+Author: VAlikV
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: numpy
+Requires-Dist: gymnasium
+Requires-Dist: mujoco>=2.3
+Requires-Dist: pin
+Provides-Extra: dev
+Requires-Dist: pytest; extra == "dev"
+Requires-Dist: black; extra == "dev"
+Requires-Dist: isort; extra == "dev"
+
+# simulator_for_IL_RL
+Mujoco simulator for testing IL, RL and reward models

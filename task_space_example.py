@@ -1,10 +1,10 @@
 import numpy as np
-from env import AssemblingEnv
+from simulator_for_il_rl.env import AssemblingEnv
 import matplotlib.pyplot as plt
 import cv2
 import time
 
-env = AssemblingEnv(xml_path="robot/scene.xml",
+env = AssemblingEnv(xml_path="scene.xml",
             sim_timestep = 0.001,
             control_hz = 20.0,
             mode = "realtime",   # "realtime" | "fast"
