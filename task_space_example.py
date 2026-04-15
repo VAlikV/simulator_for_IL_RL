@@ -6,11 +6,11 @@ import time
 
 env = UR10Env(xml_path="robot/scene.xml",
             sim_timestep = 0.001,
-            control_hz = 30.0,
+            control_hz = 20.0,
             mode = "realtime",   # "realtime" | "fast"
             max_episode_steps = 1000,
             use_task_space=True,
-            render_mode="all",   # None | "human" | "rgb_array" | "all"
+            render_mode="rgb_array",   # None | "human" | "rgb_array" | "all"
 )
 
 obs, info = env.reset()
@@ -20,7 +20,7 @@ start_pos = np.concatenate([obs["state"]["ee_pos"],obs["state"]["ee_quat"], [1]]
 t = time.time()
 
 plt.ion()
-fig, axes = plt.subplots(1, 2, figsize=(10, 5))
+fig, axes = plt.subplots(1, 3, figsize=(10, 5))
 
 for _ in range(1001):
     s = np.sin(_/(2*np.pi))/100
@@ -38,15 +38,15 @@ for _ in range(1001):
 
     plt.pause(0.001)
 
-    print("POS:", obs["state"]["ee_pos"])
-    print("QUAT:",obs["state"]["ee_quat"]) 
-    print("LIN_VEL:",obs["state"]["ee_lin_vel"])
-    print("ANG_VEL:",obs["state"]["ee_ang_vel"])
-    print("JOINTS:",obs["state"]["joint_pos"])
-    print("OBJECTS:")
-    for k in obs["objects"].keys():
-        print(k, obs["objects"][k]["pos"])
-    print()
+    # print("POS:", obs["state"]["ee_pos"])
+    # print("QUAT:",obs["state"]["ee_quat"]) 
+    # print("LIN_VEL:",obs["state"]["ee_lin_vel"])
+    # print("ANG_VEL:",obs["state"]["ee_ang_vel"])
+    # print("JOINTS:",obs["state"]["joint_pos"])
+    # print("OBJECTS:")
+    # for k in obs["objects"].keys():
+    #     print(k, obs["objects"][k]["pos"])
+    # print()
 
     if terminated or truncated:
         print("Episode ended:", terminated, truncated, info)

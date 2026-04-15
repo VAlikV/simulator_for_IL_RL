@@ -69,8 +69,8 @@
       <geom name="cap_visual" pos="0 0 0" quat="1.0 0.0 0.0 0.0" rgba="0.1 0.1 0.1 1" type="mesh" mesh="cap"/>
     </body>
 
-    <camera name="cam_front" pos="0 -1.15 0.37" quat="0.819134 0.573602 1.13747e-05 6.4521e-05" fovy="45"/>
-    <camera name="cam_side" pos="0.593167 -0.962813 0.403147" quat="0.729512 0.472006 0.297701 0.395471" fovy="45"/>
+    <camera name="cam_front" pos="0 -1.1 0.37" quat="0.819134 0.573602 1.13747e-05 6.4521e-05" fovy="45"/>
+    <camera name="cam_side" pos="0.45 -0.83 0.40" quat="0.729512 0.472006 0.297701 0.395471" fovy="45"/>
               
   </worldbody>
 

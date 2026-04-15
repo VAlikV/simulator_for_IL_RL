@@ -88,7 +88,7 @@ class UR10Env(gym.Env):
     gripper_actuator_name = "fingers_actuator"
     # gripper_joint_name = "left_driver_joint"
 
-    camera_names = ["cam_front", "cam_side"]
+    camera_names = ["cam_front", "cam_side", "cam_gripper"]
 
     objects_names = ["bottom", "mid", "cap"]
     objects_joints = ["bottom_joint", "mid_joint", "cap_joint"]
