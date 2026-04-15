@@ -1,10 +1,10 @@
 import numpy as np
-from env import UR10Env
+from env import AssemblingEnv
 import matplotlib.pyplot as plt
 import cv2
 import time
 
-env = UR10Env(xml_path="robot/scene.xml",
+env = AssemblingEnv(xml_path="robot/scene.xml",
             sim_timestep = 0.001,
             control_hz = 20.0,
             mode = "realtime",   # "realtime" | "fast"
