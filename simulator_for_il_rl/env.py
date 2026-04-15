@@ -101,7 +101,7 @@ class AssemblingEnv(gym.Env):
     objects_names = ["bottom", "mid", "cap"]
     objects_joints = ["bottom_joint", "mid_joint", "cap_joint"]
 
-    initial_pose = [1.57, -1.57, 1.57, -1.57, -1.57, 0.0, 0.0]
+    initial_pose = [1.42010733, -1.74898752,  2.36328641, -2.1743184, -1.57146472, -0.14989266, 0]
 
     def __init__(
                 self,
@@ -380,13 +380,15 @@ class AssemblingEnv(gym.Env):
             if self.viewer.is_running():
                 self.viewer.sync()
 
-        self.step_count += 1
-
         obs = self._get_obs()
         
         reward = 0.0
         terminated = False
-        truncated = self.step_count >= self.max_episode_steps
+        truncated = False
+
+        if self.max_episode_steps > 0:
+            self.step_count += 1
+            truncated = self.step_count >= self.max_episode_steps
 
         # ===================== realtime pacing =====================
         if self.realtime:
