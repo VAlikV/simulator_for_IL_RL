@@ -1,9 +1,0 @@
-numpy
-gymnasium
-mujoco>=2.3
-pin
-
-[dev]
-pytest
-black
-isort
