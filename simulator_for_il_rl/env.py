@@ -23,8 +23,8 @@ class PinKinematics:
 
         self.max_it = max_it
         self.eps = eps
-        self.dt = 1e-1
-        self.damp = 1e-12
+        self.dt = 0.02
+        self.damp = 1e-4
 
     def solve_ik(self, target_pos, target_orient, current_joint):
         '''
@@ -428,10 +428,13 @@ class AssemblingEnv(gym.Env):
             R_corrected = R @ R_fix
             pos_corrected = pos @ R_fix
 
-            _, all_action = self.kinematics.solve_ik(pos_corrected, R_corrected, self.data.qpos[self.kin_joints_idx])
+            success, all_action = self.kinematics.solve_ik(pos_corrected, R_corrected, self.data.qpos[self.kin_joints_idx])
 
-            all_action[self.gripper_actuator_idx] = 255*gripper
-            action = all_action[self.actuator_idx]
+            if success:
+                all_action[self.gripper_actuator_idx] = 255*gripper
+                action = all_action[self.actuator_idx]
+            else:
+                action = self.data.qpos[self.joints_qpos_idx].copy()
 
         self.gripper_action = action[-1]
         self.data.ctrl[:] = action
