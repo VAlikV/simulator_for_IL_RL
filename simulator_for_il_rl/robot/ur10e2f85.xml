@@ -1,7 +1,7 @@
 <mujoco model="robot">
   <compiler angle="radian" meshdir="assets" autolimits="true"/>
 
-  <option integrator="implicitfast"/>
+  <option integrator="RK4" cone="elliptic" impratio="10"/>
 
   <default>
     <default class="robot">
@@ -61,11 +61,11 @@
           <geom type="mesh" group="3"/>
           <default class="pad_box1">
             <geom type="box" pos="0.043258  0 0.12"  size="0.002 0.011 0.009375" friction="0.7"
-              solref="0.01 1" solimp="0.9 0.95 0.001" priority="1" rgba="0.55 0.55 0.55 1"/>
+              solref="0.004 1" solimp="0.95 0.99 0.001" priority="1" rgba="0.55 0.55 0.55 1"/>
           </default>
           <default class="pad_box2">
             <geom type="box" pos="0.043258 0 0.13875" size="0.002 0.011 0.009375" friction="0.6"
-              solref="0.01 1" solimp="0.9 0.95 0.001" priority="1" rgba="0.45 0.45 0.45 1"/>
+              solref="0.004 1" solimp="0.95 0.99 0.001" priority="1" rgba="0.45 0.45 0.45 1"/>
           </default>
         </default>
       </default>

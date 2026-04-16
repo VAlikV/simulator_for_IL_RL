@@ -2,7 +2,7 @@
   <include file="ur10e2f85.xml"/>
 
   <compiler meshdir="assets"/>
-  <option integrator="implicitfast" timestep="0.001">
+  <option integrator="implicitfast" timestep="0.002">
     <flag multiccd="enable"/>
   </option>
 
@@ -11,7 +11,7 @@
   <default>
     <default class="collision_obj">
       <geom condim="4" contype="5" conaffinity="1" priority="1" group="1" 
-        solref="0.01 1" solimp="0.9 0.95 0.001" friction="1 0.95 0.01" />
+        solref="0.001 1.5" solimp="0.9 0.95 0.001" friction="1 1 0.005" />
     </default>
   </default>
 
@@ -28,7 +28,7 @@
     <material name="groundplane" texture="groundplane" texuniform="true" texrepeat="5 5" reflectance="0.2"/>
 
     <mesh name="bottom" file="box/bottom.stl" scale="0.5 0.5 0.5"/>
-    <mesh name="mid" file="box/mid.stl" scale="0.5 0.5 0.5"/>
+    <mesh name="mid" file="box/mid.stl" scale="0.4 0.4 0.4"/>
     <mesh name="cap" file="box/cap.stl" scale="0.5 0.5 0.5"/>
   </asset>
 
