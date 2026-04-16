@@ -1,9 +1,10 @@
 <mujoco model="ur10e scene">
+  <!-- <include file="ur10egripper.xml"/> -->
   <include file="ur10e2f85.xml"/>
 
   <compiler meshdir="assets"/>
   <option integrator="RK4" timestep="0.002">
-    <flag multiccd="enable"/>
+    <flag multiccd="enable" nativeccd="enable"/>
   </option>
 
   <statistic center="0 0 1" extent="1"/>
@@ -39,7 +40,7 @@
     <body name="table" pos="0.0 -0.65 0.075">
       <!-- <joint/> -->
       <geom type="box" size="0.5 0.3 0.075" rgba="0.8 0.8 0.8 1" class="collision_obj" />
-      <!-- <geom name="target_area" type="box" pos="0.1 0 0.076" size="0.1 0.1 0.001" rgba="0.6 0.4 0.2 1.0" contype="0" conaffinity="0"/> -->
+      <geom name="target_area" type="box" pos="0.1 0 0.076" size="0.1 0.1 0.001" rgba="0.6 0.4 0.2 1.0" contype="0" conaffinity="0"/>
     </body>
 
     <body name="bottom" pos="-0.15 -0.55 0.2" quat="1.0 0.0 0.0 0.0">
@@ -79,9 +80,8 @@
       <geom name="col_cap_wall6" type="box" pos="0.00875 0.0 -0.038" size="0.00625 0.026 0.003" class="collision_obj" rgba="0.1 0.1 0.1 0.0"/>
 
       <geom name="col_cap_wall7" type="box" pos="0.00875 0.023 0.0" size="0.00625 0.003 0.041" class="collision_obj" rgba="0.1 0.1 0.1 0.0"/>
-      <geom name="col_cap_wall8" type="box" pos="0.00875 -0.023 0.0" size="0.00625 0.003 0.041" class="collision_obj" rgba="0.1 0.1 0.1 0.0"/>
-      
-      </body>
+      <geom name="col_cap_wall8" type="box" pos="0.00875 -0.023 0.0" size="0.00625 0.003 0.041" class="collision_obj" rgba="0.1 0.1 0.1 0.0"/> 
+    </body>
     
     <camera name="cam_front" pos="0 -1.1 0.37" quat="0.819134 0.573602 1.13747e-05 6.4521e-05" fovy="45"/>
     <camera name="cam_side" pos="0.45 -0.83 0.40" quat="0.729512 0.472006 0.297701 0.395471" fovy="45"/>
