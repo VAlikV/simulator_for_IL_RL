@@ -327,6 +327,7 @@ class AssemblingEnv(gym.Env):
 
         for i, id in enumerate(self.joints_qpos_idx):
             self.data.qpos[id] = self.initial_pose[i]
+            self.data.qvel[id] = 0.0
 
         for i, id in enumerate(self.objects_qpos_adr):
             pos = self.data.qpos[id:id+3]
@@ -352,6 +353,11 @@ class AssemblingEnv(gym.Env):
 
         if ((self.render_mode == "human") or (self.render_mode == "all")) and self.viewer is None:
             self.viewer = mujoco.viewer.launch_passive(self.model, self.data)
+            cam = self.viewer.cam
+            cam.lookat[:] = [-0.430, -0.367, -0.075]
+            cam.distance = 1
+            cam.azimuth = 145
+            cam.elevation = -24
 
         self.step_count = 0
 
