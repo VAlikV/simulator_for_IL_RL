@@ -2,7 +2,7 @@
   <include file="ur10e2f85.xml"/>
 
   <compiler meshdir="assets"/>
-  <option integrator="implicitfast" timestep="0.002">
+  <option integrator="RK4" timestep="0.002">
     <flag multiccd="enable"/>
   </option>
 
