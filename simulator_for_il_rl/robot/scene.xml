@@ -43,7 +43,7 @@
       <geom name="target_area" type="box" pos="0.1 0 0.076" size="0.1 0.1 0.001" rgba="0.6 0.4 0.2 1.0" contype="0" conaffinity="0"/>
     </body>
 
-    <body name="bottom" pos="-0.15 -0.55 0.2" quat="1.0 0.0 0.0 0.0">
+    <body name="bottom" pos="-0.15 -0.55 0.16" quat="1.0 0.0 0.0 0.0">
       <freejoint name="bottom_joint"/>
       <inertial pos="0.0 0.0 0.0" quat="1.0 0.0 0.0 0.0" mass="0.045" diaginertia="2.7375e-05 7.6875e-05 9.75e-05" />
       <!-- <geom name="bottom_collision" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="bottom" class="collision_obj"/> -->
@@ -56,7 +56,7 @@
       <geom name="col_wall4" type="box" pos="0.0 -0.0225 0.01" size="0.04 0.0025 0.01" class="collision_obj" rgba="0.1 0.1 0.1 0.0"/>
     </body>
 
-    <body name="mid" pos="-0.15 -0.65 0.2" quat="1.0 0.0 0.0 0.0">
+    <body name="mid" pos="-0.15 -0.65 0.16" quat="1.0 0.0 0.0 0.0">
       <freejoint name="mid_joint"/>
       <inertial pos="0.0 0.0 0.0" quat="1.0 0.0 0.0 0.0" mass="0.045" diaginertia="2.925375e-05 7.695375e-05 9.102e-05" />
       <!-- <geom name="mid_collision" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="mid" class="collision_obj"/> -->
@@ -64,7 +64,7 @@
       <geom name="mid_collision" type="box" pos="0 0 0.009" size="0.0272 0.0152 0.009" class="collision_obj" rgba="0.1 0.7 0.1 1.0"/>
     </body>
 
-    <body name="cap" pos="-0.15 -0.75 0.2" quat="1.0 0.0 1.0 0.0">
+    <body name="cap" pos="-0.15 -0.75 0.16" quat="1.0 0.0 1.0 0.0">
       <freejoint name="cap_joint"/>
       <inertial pos="0.0 0.0 0.0" quat="1.0 0.0 0.0 0.0" mass="0.045" diaginertia="0.00015375 0.00011775 5.475e-05" />
       <!-- <geom name="cap_collision" pos="0 0 0" quat="1.0 0.0 0.0 0.0" type="mesh" mesh="cap" class="collision_obj"/> -->
@@ -85,6 +85,7 @@
     
     <camera name="cam_front" pos="0 -1.1 0.37" quat="0.819134 0.573602 1.13747e-05 6.4521e-05" fovy="45"/>
     <camera name="cam_side" pos="0.45 -0.83 0.40" quat="0.729512 0.472006 0.297701 0.395471" fovy="45"/>
+    <camera name="cam_state" pos="0.247 -0.697 0.23" xyaxes="0.326 0.945 0.000 -0.387 0.134 0.912"/>
               
   </worldbody>
 

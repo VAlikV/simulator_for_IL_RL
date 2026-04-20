@@ -96,7 +96,7 @@ class AssemblingEnv(gym.Env):
     gripper_actuator_name = "fingers_actuator"
     # gripper_joint_name = "left_driver_joint"
 
-    camera_names = ["cam_front", "cam_side", "cam_gripper"]
+    camera_names = ["cam_front", "cam_side", "cam_gripper", "cam_state"]
 
     objects_names = ["bottom", "mid", "cap"]
     objects_joints = ["bottom_joint", "mid_joint", "cap_joint"]
@@ -331,16 +331,16 @@ class AssemblingEnv(gym.Env):
 
         for i, id in enumerate(self.objects_qpos_adr):
             pos = self.data.qpos[id:id+3]
-            quat = self.data.qpos[id+3:id+7]
+            quat = self.data.qpos[id+3:id+7]  
 
             dx = np.random.uniform(-0.02, 0.02)
             dy = np.random.uniform(-0.02, 0.02)
+            yaw = np.random.uniform(-np.pi/4, np.pi/4)              
 
             new_pos = pos.copy()
             new_pos[0] += dx
             new_pos[1] += dy
 
-            yaw = np.random.uniform(-np.pi/4, np.pi/4)
             q_yaw = np.array([np.cos(yaw/2), 0, 0, np.sin(yaw/2)])
 
             new_quat = np.zeros(4, dtype=np.float64)
