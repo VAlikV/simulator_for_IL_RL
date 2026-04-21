@@ -101,7 +101,7 @@ class AssemblingEnv(gym.Env):
     objects_names = ["bottom", "mid", "cap"]
     objects_joints = ["bottom_joint", "mid_joint", "cap_joint"]
 
-    initial_pose = [1.42010733, -1.74898752,  2.36328641, -2.1743184, -1.57146472, -0.14989266, 0]
+    initial_pose = [1.45567298, -1.5026531,   2.09830401, -2.15153486, -1.57066966, -0.12243712, 0]
 
     def __init__(
                 self,
@@ -335,7 +335,7 @@ class AssemblingEnv(gym.Env):
 
             dx = np.random.uniform(-0.02, 0.02)
             dy = np.random.uniform(-0.02, 0.02)
-            yaw = np.random.uniform(-np.pi/4, np.pi/4)              
+            yaw = np.random.uniform(-np.pi/4, np.pi/4)  
 
             new_pos = pos.copy()
             new_pos[0] += dx

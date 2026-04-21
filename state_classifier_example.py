@@ -11,7 +11,7 @@ import torch
 from PIL import Image
 
 model = StateClassifier().to("cuda")
-model.load_state_dict(torch.load("checkpoints/last_model.pt", map_location="cuda"))  # или "cuda"
+model.load_state_dict(torch.load("models/state_model.pt", map_location="cuda"))  # или "cuda"
 model.eval()
 
 env = AssemblingEnv(xml_path="scene.xml",
