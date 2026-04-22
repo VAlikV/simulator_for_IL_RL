@@ -6,3 +6,4 @@ MUJOCO_LOG.TXT
 *.egg-info
 build
 photos
+outputs*

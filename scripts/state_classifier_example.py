@@ -6,12 +6,12 @@ import time
 from rc10_api.ps4_joystick import PS4Joystick
 from scipy.spatial.transform import Rotation
 
-from state_models import StateClassifier, transform
+from simulator_for_il_rl.state_models import StateClassifier, transform
 import torch
 from PIL import Image
 
 model = StateClassifier().to("cuda")
-model.load_state_dict(torch.load("models/state_model.pt", map_location="cuda"))  # или "cuda"
+model.load_state_dict(torch.load("simulator_for_il_rl/models/state_model.pt", map_location="cuda"))  # или "cuda"
 model.eval()
 
 env = AssemblingEnv(xml_path="scene.xml",
@@ -73,7 +73,7 @@ for _ in range(1000001):
 
     obs, reward, terminated, truncated, info = env.step(start_pos)
 
-    print("POS:", obs["state"]["joint_pos"])
+    # print("POS:", obs["state"]["joint_pos"])
     # print("POS:", obs["state"]["ee_pos"])
     # print("QUAT:",obs["state"]["ee_quat"]) 
     # print("LIN_VEL:",obs["state"]["ee_lin_vel"])
@@ -96,7 +96,7 @@ for _ in range(1000001):
     input_tensor = transform(img).unsqueeze(0).to("cuda")  # добавляем batch dimension: (1, 3, 224, 224)
 
     with torch.no_grad():
-        prediction, conf = model.predict(input_tensor)  # prediction shape: (1, 4)
+        prediction, conf, prob = model.predict(input_tensor)  # prediction shape: (1, 4)
         print("Stage: ", prediction.cpu().numpy()[0])
         print("Conf: ", conf.cpu().numpy()[0])
         print()
